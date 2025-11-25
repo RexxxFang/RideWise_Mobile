@@ -1,0 +1,1634 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RideWise – Vanilla HTML Demo (Updated)</title>
+  <style>
+    /* MODIFIED: Dark Navy Theme Color Palette */
+    :root{
+      --bg:#0f172a; /* Dark Navy Background */ 
+      --card:#1e293b; /* Slightly Lighter Navy for Cards (Slate-800) */ 
+      --ink:#f8fafc; /* Light Ink (text) */ 
+      --muted:#94a3b8; /* Light Blue-Gray for Muted Text */ 
+      --line:#334155; /* Darker Blue-Gray for Lines/Borders (Slate-700) */ 
+      --brand:#ef4444; /* Primary Brand Red */ 
+      --brand-ink:#fee2e2; /* Light accent for brand color */
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    /* FIX: Set a more mobile-friendly base font size */
+    body{
+        margin:0;
+        font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+        color:var(--ink);
+        /* Use a linear gradient from card to background for depth */
+        background:linear-gradient(var(--card),var(--bg)) min(100vh,100svh); 
+        font-size: 15px;
+    } 
+    button,input,select,textarea{font:inherit}
+    a{color:inherit}
+
+    /* Layout */
+    .container{max-width:1100px;margin-inline:auto;padding:16px}
+    .row{display:grid;gap:16px}
+    @media(min-width:900px){.row-5{grid-template-columns:3fr 2fr}}
+
+    /* UI atoms */
+    .nav{
+        position:sticky;
+        top:0;
+        z-index:100;
+        backdrop-filter:saturate(180%) blur(8px);
+        /* Use a color mix that's transparent but favors the card color */
+        background:color-mix(in oklab, var(--card) 90%, transparent); 
+    }
+    .nav-inner{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:12px 16px}
+    
+    /* Light background/border for badges in dark mode */
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:12px;color:var(--ink)}
+
+    /* Button styling for dark theme */
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--line);background:var(--card);border-radius:12px;cursor:pointer;color:var(--ink)}
+    .btn:hover{background:var(--line);border-color:var(--muted)}
+    
+    .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)} /* Primary button: dark ink background, navy text */
+    .btn.brand{background:var(--brand);border-color:var(--brand);color:white}
+    .btn.ghost{border-color:transparent;background:transparent}
+    .btn.block{width:100%;justify-content:center}
+    
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+    .card-h{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+    .card-c{padding:14px 16px}
+    
+    .pill{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--bg)} /* Pill uses darker background */
+    .label{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)} /* Input uses darker background */
+    
+    /* Switch colors remain the same for clear contrast */
+    .switch{appearance:none;width:44px;height:26px;border-radius:999px;background:#cbd5e1;position:relative;outline:none;cursor:pointer;border:1px solid #94a3b8}
+    .switch:checked{background:#22c55e;border-color:#16a34a}
+    .switch:before{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s ease}
+    .switch:checked:before{transform:translateX(18px)}
+    .grid-2{display:grid;gap:12px}
+    @media(min-width:720px){.grid-2{grid-template-columns:1fr 1fr}}
+    .grid-3{display:grid;gap:12px}
+    @media(min-width:720px){.grid-3{grid-template-columns:1fr 1fr 1fr}}
+    .muted{color:var(--muted)}
+    
+    /* MODIFIED: Ensure main titles and strong text use light ink for contrast */
+    .title, strong { 
+        font-weight:700;
+        color: var(--ink); /* Force main text to be white/light */
+    }
+    
+    /* Revert color for specific elements if they need to inherit */
+    .muted, .badge {
+        color: var(--muted);
+    }
+    .btn.primary, .btn.brand {
+        color: white; /* Keep white text on brand/primary buttons for dark theme */
+    }
+    /* FIX for primary button text in dark mode (override to prevent white-on-white) */
+    .btn.primary {
+        color: var(--bg); /* Primary button text should be dark navy/black on white/light ink background */
+    }
+
+
+    /* FIX: Ensure H1 scales down correctly */
+    .h1{font-size:clamp(24px,7vw,44px);line-height:1.1;margin:12px 0}
+    .hidden{display:none !important}
+
+    /* Map mock - uses a dark placeholder color */
+    .map{position:relative;min-height:380px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background-color:#020617;}
+    .map-chip{position:absolute;top:12px;left:12px;z-index:2}
+    
+    /* List rows */
+    .row-item{border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;gap:10px;align-items:center;background:var(--bg)}
+    .avatar{inline-size:36px;block-size:36px;border-radius:50%;background:#334155;display:grid;place-items:center;font-weight:700}
+
+    /* Footer action grid */
+    .grid-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    /* Sections */
+    .section{padding-block:16px}
+
+    /* Tabs (screens) */
+    .screen{display:none;animation:fade .18s ease}
+    .screen.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    /* Badges */
+    .k{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px dashed var(--line);border-radius:12px;font-size:12px}
+    /* ADDED: Full width utility for Rewards screen */
+    .k.full-width {
+        grid-column: 1 / -1; 
+        display: flex; /* Ensure content still aligns nicely */
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* ADDED: Consistent metric styling for Rewards screen */
+    .metric-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--ink);
+    }
+
+    /* Chat Styling */
+    .chat-box{height:400px;background:var(--bg);border-radius:12px;padding:12px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+    .message{max-width:80%;padding:8px 12px;border-radius:16px;font-size:14px}
+    .message.in{background:var(--card);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px} /* Incoming uses card color */
+    .message.out{background:var(--brand);color:white;align-self:flex-end;border-bottom-right-radius:4px}
+
+    /* Trophy Styling (Adjusted backgrounds for dark mode) */
+    .trophy-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 16px;
+    }
+    .trophy-item {
+        text-align: center;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--bg); /* Locked state uses main background */
+        opacity: 0.5; 
+    }
+    .trophy-item.unlocked {
+        opacity: 1; /* Unlocked state */
+        background: #064e3b; /* Darker Green for Unlocked */
+        border-color: #10b981; 
+    }
+    .trophy-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .trophy-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 4px;
+    }
+    .trophy-caption {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    /* Mission Item Styling (Adjusted backgrounds for dark mode) */
+    .mission-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        margin-bottom: 8px;
+        background: var(--bg); /* Mission uses darker background */
+    }
+    .mission-item.complete {
+        background: #042f2e; /* Very dark green/teal */
+        border-color: #065f46; 
+        opacity: 0.8;
+    }
+    .mission-icon {
+        font-size: 20px;
+        margin-right: 12px;
+        line-height: 1;
+    }
+    .mission-text {
+        flex: 1;
+        font-weight: 500;
+        font-size: 14px;
+    }
+    .mission-reward {
+        font-weight: 700;
+        color: #22c55e;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    /* NEW: Wallet balance style */
+    .balance-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--brand);
+        margin-top: 4px;
+        margin-bottom: 12px;
+    }
+
+    /* FIX: TIGHTER LAYOUT FOR VERY SMALL SCREENS (<400px) */
+    @media(max-width: 400px){
+      .container{
+        padding: 8px; /* Reduce container padding */
+      }
+      .nav-inner{
+        padding: 10px 8px; /* Reduce nav padding */
+      }
+      .nav-inner > div:first-child .badge {
+        display: none; /* Hide long badge to save space */
+      }
+      .btn:not(.block), .input, .pill{
+        padding: 8px 10px; /* Make buttons/inputs slightly denser */
+      }
+      .card-c {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner container">
+      <div style="display:flex;align-items:center;gap:8px">
+        <strong style="color:var(--brand)">RideWise</strong>
+        
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn ghost" data-nav="rewards">Rewards</button>
+        <button class="btn ghost" data-nav="messages">Messaging</button>
+        <button class="btn ghost" data-nav="profile">Profile</button>
+        <button class="btn ghost" data-nav="settings">Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <main id="screens">
+    <section id="welcome" class="screen active">
+      <div class="container" style="text-align:center;padding-block:48px">
+        <span class="badge">✨ Smarter Commutes. Cleaner Future.</span>
+        <h1 class="h1">Welcome to <span style="color:var(--brand)">RideWise</span></h1>
+        <p class="muted" style="max-width:720px;margin:8px auto 0">
+          A student-only ride matching app for SFU. Save money, skip parking stress, and cut CO₂ — one shared commute at a time.
+        </p>
+        <div style="margin-top:16px;display:flex;justify-content:center;gap:8px">
+          <button class="btn primary" data-goto="onboard" style="color:#000;">Get Started ➜ (Verify)</button>
+          <button class="btn" data-goto="home">Explore Demo</button>
+        </div>
+
+        <div class="row grid-3" style="margin-top:24px;text-align:left">
+          <div class="card">
+            <div class="card-h"><strong> Lower Emissions</strong></div>
+            <div class="card-c muted">Track CO₂ saved each trip and compete on campus leaderboards.</div>
+          </div>
+          <div class="card">
+            <div class="card-h"><strong> Split Costs</strong></div>
+            <div class="card-c muted">Transparent, small cost-share estimates keep things fair and friendly.</div>
+          </div>
+          <div class="card">
+            <div class="card-h"><strong> Trusted Community</strong></div>
+            <div class="card-c muted">SFU email verification, preferences, and ratings build confidence.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="onboard" class="screen">
+      <div class="container section">
+        <h2 class="title" style="display:flex;align-items:center;gap:8px">← <button class="btn ghost" data-goto="welcome">Back</button> Set up your commuter profile</h2>
+        
+        <div class="card" style="margin-top:12px">
+            <div class="card-h"><strong>🛡️ Student Verification (SFU)</strong></div>
+            <div class="card-c">
+                <div class="label">Full Name (used for your profile)</div>
+                <input class="input" id="onboardName" placeholder="e.g., Alex Chan" style="margin-bottom:12px" />
+                
+                <div class="label">SFU Email (for verification)</div>
+                <input class="input" id="onboardEmail" placeholder="e.g., xxx@sfu.ca" style="margin-bottom:12px" />
+                
+                <div class="label">SFU Student ID (for mock verification)</div>
+                <input class="input" id="onboardStudentId" placeholder="e.g., 301XXXXXX" />
+                <p class="muted" style="font-size:14px;margin-top:6px">This step builds community trust and is required to join/post rides.</p>
+            </div>
+        </div>
+        
+        <div class="row grid-2" style="margin-top:12px">
+          <div class="card">
+            <div class="card-h"><strong>How do you want to use RideWise?</strong></div>
+            <div class="card-c">
+              <div class="grid-2">
+                <div class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <div style="display:flex;align-items:center;gap:8px">🚗 <div><div class="title">Offer rides (Driver)</div><div class="muted" style="font-size:14px">Share seats when it works for you.</div></div></div>
+                  <input id="asDriver" type="checkbox" class="switch" />
+                </div>
+                <div class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <div style="display:flex;align-items:center;gap:8px">👤 <div><div class="title">Find rides (Rider)</div><div class="muted" style="font-size:14px">Match with nearby drivers to SFU.</div></div></div>
+                  <input id="asRider" type="checkbox" class="switch" checked />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><strong>Preferences</strong></div>
+            <div class="card-c">
+              
+              <div class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+                <span>Friends-only mode</span>
+                <input id="friendsOnly" type="checkbox" class="switch" />
+              </div>
+              <div class="pill">
+                <div class="label">Gender preference</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn" data-gender="any">Any</button>
+                  <button class="btn" data-gender="female">Female</button>
+                  <button class="btn" data-gender="male">Male</button>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:end;margin-top:12px">
+                <button class="btn primary" onclick="completeOnboarding()">**Verify & Continue ➜**</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section id="registerCar" class="screen">
+      <div class="container section">
+        <h2 class="title" style="display:flex;align-items:center;gap:8px">← <button class="btn ghost" data-goto="onboard">Back</button> Register your car</h2>
+        <p class="muted" style="margin-top:4px">This helps riders feel safe and confident knowing the vehicle details for pickup.</p>
+        
+        <div class="card" style="margin-top:12px">
+          <div class="card-h"><strong>Vehicle Details</strong></div>
+          <div class="card-c">
+            <div style="margin-bottom:12px">
+              <div class="label">Car Make</div>
+              <input class="input" id="carMake" placeholder="e.g., Honda" />
+            </div>
+            <div style="margin-bottom:12px">
+              <div class="label">Car Model</div>
+              <input class="input" id="carModel" placeholder="e.g., Civic" />
+            </div>
+            <div style="margin-bottom:12px">
+              <div class="label">License Plate (for mock verification)</div>
+              <input class="input" id="carPlate" placeholder="e.g., ABC 123" />
+              <p class="muted" style="font-size:14px;margin-top:6px">The plate is only shown to matched riders just before pickup.</p>
+            </div>
+
+            <div style="display:flex;justify-content:end;margin-top:12px">
+              <button class="btn primary" onclick="completeCarRegistration()">**Save & Continue ➜**</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="home" class="screen">
+      <div class="container section">
+        <div id="home-greeting" style="margin-bottom:16px;">
+            </div>
+        
+        <div style="display:flex;gap:8px">
+          <div style="flex:1">
+            <input id="search" class="input" placeholder="Search driver, pickup, or drop-off" />
+          </div>
+          <button class="btn" data-goto="find">⛭ Filters</button>
+        </div>
+
+        <div class="row row-5" style="margin-top:12px">
+          <div class="map" id="map">
+            <div class="badge map-chip">📍 SFU Burnaby Campus Area (Live Map View)</div>
+            <iframe
+              width="100%"
+              height="100%"
+              frameborder="0"
+              style="border:0;"
+              referrerpolicy="no-referrer-when-downgrade"
+              src="https://maps.google.com/maps?width=100%&height=100%&hl=en&q=SFU+Burnaby+Campus&t=&z=14&ie=UTF8&iwloc=B&output=embed"
+              allowfullscreen>
+            </iframe>
+          </div>
+
+          <div class="col">
+            <div class="card">
+              <div class="card-h"><strong>Available rides</strong> <span class="muted" id="count" style="margin-left:auto"></span></div>
+              <div class="card-c" id="rideList"></div>
+            </div>
+
+            <div class="grid-actions" style="margin-top:12px">
+              <button class="btn brand" data-goto="offer">＋ Offer a ride</button>
+              <button class="btn" data-goto="find">↺ Find a ride</button>
+            </div>
+
+            <div class="card" style="margin-top:12px">
+              <div class="card-c" style="display:flex;align-items:center;justify-content:space-between">
+                <div class="muted">
+                  <div class="title">Campus impact</div>
+                  RideWise users saved <b><span id="co2">18.4</span> kg</b> CO₂
+                </div>
+                <button class="btn ghost" data-goto="rewards">🌿 View rewards</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="offer" class="screen">
+      <div class="container section">
+        <div style="display:flex;align-items:center;gap:8px" class="title">← <button class="btn ghost" data-goto="home">Back</button> Offer a ride</div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-h"><strong>Trip details</strong></div>
+          <div class="card-c">
+            <div class="grid-2">
+              <div>
+                <div class="label">From (Pickup Location)</div>
+                <select class="input" id="offerFrom">
+                    <option value="Production Way–University Station" selected>Production Way–University Station</option>
+                    <option value="Lougheed Town Centre">Lougheed Town Centre</option>
+                    <option value="Surrey Central">Surrey Central</option>
+                    <option value="Metrotown Station">Metrotown Station</option>
+                    <option value="Burquitlam Station">Burquitlam Station</option>
+                    <option value="Custom">Other (Type below)</option>
+                </select>
+              </div>
+              <div>
+                <div class="label">To (Drop-off Campus)</div>
+                <select class="input" id="offerTo">
+                    <option value="SFU Burnaby" selected>SFU Burnaby</option>
+                    <option value="SFU Surrey">SFU Surrey</option>
+                    <option value="SFU Vancouver">SFU Vancouver</option>
+                    <option value="Custom">Other (Type below)</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid-2 hidden" id="customLocations">
+                <div><input class="input" id="offerFromCustom" placeholder="Type custom pickup location" /></div>
+                <div><input class="input" id="offerToCustom" placeholder="Type custom drop-off location" /></div>
+            </div>
+
+            <div class="grid-3" style="margin-top:8px">
+              <div>
+                <div class="label">Departure time</div>
+                <input type="time" class="input" id="offerTime" value="09:00" />
+              </div>
+              <div>
+                <div class="label">Seats</div>
+                <input type="number" class="input" id="offerSeats" min="1" max="4" value="2" />
+              </div>
+              <div>
+                <div class="label">Cost share ($ est.)</div>
+                <input type="number" class="input" id="offerCost" min="0" step="0.5" value="2" />
+              </div>
+            </div>
+            <div style="margin-top:8px">
+              <div class="label">Notes (optional)</div>
+              <textarea class="input" id="offerNotes" rows="3" placeholder="e.g., Quiet ride, no food please"></textarea>
+            </div>
+            <div class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px">
+              <div>
+                <div class="title" style="font-weight:600">Friends-only mode</div>
+                <div class="muted" style="font-size:14px">Only show to people you follow or have ridden with</div>
+              </div>
+              <input id="offerFriends" type="checkbox" class="switch" />
+            </div>
+            <div style="display:flex;justify-content:end;gap:8px;margin-top:12px">
+              <button class="btn" data-goto="home">Cancel</button>
+              <button class="btn primary" id="postRide">Post ride</button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+
+    <section id="find" class="screen">
+      <div class="container section">
+        <div style="display:flex;align-items:center;gap:8px" class="title">← <button class="btn ghost" data-goto="home">Back</button> Find a ride</div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-h"><strong>Filters</strong></div>
+          <div class="card-c">
+            <div class="grid-3">
+              <div>
+                <div class="label">Earliest time</div>
+                <input type="time" class="input" id="filterTime" />
+              </div>
+              <div>
+                <div class="label">Gender preference</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn" data-gender-filter="any">Any</button>
+                  <button class="btn" data-gender-filter="female">Female</button>
+                  <button class="btn" data-gender-filter="male">Male</button>
+                </div>
+              </div>
+              <div>
+                <div class="label">Filter by Course Match</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn" data-course-filter="none">All Rides</button>
+                  <button class="btn" data-course-filter="cmpt300">CMPT 300</button>
+                  <button class="btn" data-course-filter="bus343">BUS 343</button>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:end;margin-top:12px">
+              <button class="btn primary" data-apply-filters>Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <div class="card-h"><strong>Results</strong> <span class="muted" id="resultsCount" style="margin-left:auto"></span></div>
+          <div class="card-c" id="results"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="details" class="screen">
+      <div class="container section">
+        <div style="display:flex;align-items:center;gap:8px" class="title" id="detailsHeader"></div>
+        <div class="card" style="margin-top:12px" id="detailsCard">
+          <div class="card-c">No ride selected.</div>
+        </div>
+      </div>
+    </section>
+    
+    <section id="messages" class="screen">
+      <div class="container section">
+        <h2 class="title" style="display:flex;align-items:center;gap:8px">← <button class="btn ghost" data-goto="home">Back</button> Messaging & Chat</h2>
+        <p class="muted" style="margin-top:4px">Private chats with drivers/riders you've matched with, and group chats for your rides.</p>
+        
+        <div class="row grid-2" style="margin-top:12px">
+          <div class="card">
+            <div class="card-h"><strong>Recent Chats</strong></div>
+            <div class="card-c">
+                <button class="row-item" style="margin-bottom:8px" onclick="showChat('chat-maya')">
+                  <div class="avatar" style="background:#fef3c7">AT</div>
+                  <div style="flex:1">
+                    <div class="title">Annika Tan <span class="badge" style="background:#d1fae5">1 new</span></div>
+                    <div class="muted" style="font-size:14px">Just checking on the pickup spot...</div>
+                  </div>
+                  <span>></span>
+                </button>
+                <button class="row-item" style="margin-bottom:8px" onclick="showChat('chat-alex')">
+                  <div class="avatar" style="background:#ffe4e6">KS</div>
+                  <div style="flex:1">
+                    <div class="title">Kaidin SD</div>
+                    <div class="muted" style="font-size:14px">See you at 8:40!</div>
+                  </div>
+                  <span>></span>
+                </button>
+                <button class="row-item" onclick="showChat('chat-group')">
+                  <div class="avatar">GS</div>
+                  <div style="flex:1">
+                    <div class="title">SFU Bus Loop Group Chat</div>
+                    <div class="muted" style="font-size:14px">Rex: Running 2 mins late, guys.</div>
+                  </div>
+                  <span>></span>
+                </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><strong>New Message</strong></div>
+            <div class="card-c">
+              <div class="label">Select Contact or Start Group Chat</div>
+              <input class="input" id="newChatInput" placeholder="Search contacts (e.g., Rex, Annika)" />
+              <button class="btn primary block" style="margin-top:12px" onclick="initiateNewChat()">Start Chat</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="rewards" class="screen">
+      <div class="container section">
+        <div style="display:flex;align-items:center;gap:8px" class="title">← <button class="btn ghost" data-goto="home">Back</button> Rewards & Impact</div>
+        
+        <div class="row grid-2" style="margin-top:12px">
+          <div class="card">
+            <div class="card-h"><strong>Your progress</strong></div>
+            <div class="card-c">
+              <div class="grid-3">
+                <div class="pill" style="text-align:center">
+                  <div class="muted">WisePoints</div>
+                  <div class="title metric-value" id="points">120</div>
+                </div>
+                <div class="pill" style="text-align:center">
+                  <div class="muted">CO₂ saved</div>
+                  <div class="title metric-value"><span id="co2Big">18.4</span> kg</div>
+                </div>
+                <div class="pill" style="text-align:center">
+                  <div class="muted">Badges</div>
+                  <div class="title metric-value">3</div>
+                </div>
+              </div>
+              <div class="grid-2" style="margin-top:12px">
+                <div class="k full-width">Students may redeem their points for discounts on campus restaurants and coffee shops.</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-h"><strong>Campus leaderboard</strong></div>
+            <div class="card-c" id="leaderboard"></div>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-top:16px">
+            <div class="card-h">Daily Missions</div>
+            <div class="card-c" id="missionsBar">
+                </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+            <div class="card-h">Referral Bonus</div>
+            <div class="card-c" style="text-align:center">
+                <p class="title" style="margin-bottom:8px">Invite a friend and get 50 WisePoints each!</p>
+                <div class="pill" style="display:inline-flex;align-items:center;gap:12px">
+                    <span class="muted">Your Code:</span>
+                    <strong id="referralCodeDisplay">SFU-RIDE-JANE</strong>
+                    <button class="btn primary">Share</button>
+                </div>
+                <p class="muted" style="font-size:14px;margin-top:8px">Earn unlimited rewards when your friends complete their first ride.</p>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+            <div class="card-h">Environmental Trophies</div>
+            <div class="card-c">
+                <div class="trophy-grid" id="trophyGrid">
+                    </div>
+            </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="profile" class="screen">
+      <div class="container section">
+        <div style="display:flex;align-items:center;gap:8px" class="title">← <button class="btn ghost" data-goto="home">Back</button> Profile & Preferences</div>
+        
+        <div class="card" style="margin-top:12px">
+            <div class="card-h"><strong>Complete Your Profile</strong></div>
+            <div class="card-c" style="display:flex;align-items:center;gap:16px">
+                <div style="flex:1">
+                    <div class="title" style="font-weight:600">Finish setting up your profile for higher trust and more matches.</div>
+                    <div class="muted" style="font-size:14px;margin-top:4px">Remaining steps: Add a photo, verify car details, set bio.</div>
+                </div>
+                <button class="btn primary" style="color:#000;">Update Photo (Mock)</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+            <div class="card-h"><strong>Wallet & Balance</strong></div>
+            <div class="card-c">
+                <div class="label">Current Balance</div>
+                <div class="balance-value" id="walletBalance">$55.00</div>
+                <div class="grid-actions">
+                    <button class="btn brand block" onclick="alert('Mock: Initiating Add Funds process.')">Add Funds</button>
+                    <button class="btn block" onclick="alert('Mock: Initiating Withdraw process.')">Withdraw</button>
+                </div>
+                <div style="margin-top:12px">
+                    <div class="label">Recent Transactions (Last 30 Days)</div>
+                    <div id="transactionsList">
+                        </div>
+                    <p class="muted" style="font-size:14px;text-align:center;margin-top:8px">All transactions are secured by SFU Payment Gateway.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div class="card">
+            <div class="card-h"><strong>Your profile</strong></div>
+            <div class="card-c">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <div class="avatar" id="profileAvatar">GR</div>
+                <div>
+                  <div class="title" id="profileName">Guest Rider</div>
+                  <div class="muted" style="font-size:14px">Rating: 4.9 • 12 rides</div>
+                </div>
+              </div>
+              <div class="grid-2">
+                <label class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <span>Carpool mode</span>
+                  <input type="checkbox" class="switch" id="pfCarpool" checked />
+                </label>
+                <label class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                  <span>Friends-only</span>
+                  <input type="checkbox" class="switch" id="pfFriends" />
+                </label>
+              </div>
+              <div class="pill" style="margin-top:8px">
+                <div class="label">Gender preference</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn" data-gender="any">Any</button>
+                  <button class="btn" data-gender="female">Female</button>
+                  <button class="btn" data-gender="male">Male</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><strong>Ride etiquette (What riders should know)</strong></div>
+            <div class="card-c" id="etiquetteOptions" style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" data-etiquette="Quiet">Quiet</button>
+              <button class="btn" data-etiquette="Music OK">Music OK</button>
+              <button class="btn" data-etiquette="No food">No food</button>
+              <button class="btn" data-etiquette="Trunk space limited">Trunk space limited</button>
+              <button class="btn" data-etiquette="Mask friendly">Mask friendly</button>
+              <button class="btn" data-etiquette="Women-only">Women-only (if preferred)</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-top:16px">
+          <div class="card-h"><strong>Favorite Riders/Drivers</strong></div>
+          <div class="card-c" id="favoritesList">
+              <button class="row-item" style="margin-bottom:8px">
+                  <div class="avatar" style="background:#ffe4e6">KS</div>
+                  <div style="flex:1">
+                      <div class="title">Kaidin SD</div>
+                      <div class="muted" style="font-size:14px">Driver • Rating: 4.8</div>
+                  </div>
+                  <button class="btn ghost">Remove</button>
+              </button>
+              <button class="row-item">
+                  <div class="avatar" style="background:#fef3c7">AT</div>
+                  <div style="flex:1">
+                      <div class="title">Annika Tan</div>
+                      <div class="muted" style="font-size:14px">Rider • Rating: 5.0</div>
+                  </div>
+                  <button class="btn ghost">Remove</button>
+              </button>
+          </div>
+        </div>
+        
+        <div class="card" style="margin-top:16px">
+          <div class="card-h"><strong>Contacts & Friends</strong></div>
+          <div class="card-c" id="contactsList">
+              <p class="muted" style="font-size:14px">Friends are automatically trusted and exempt from "Friends-only mode" rides.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-h"><strong>Emergency Contact</strong></div>
+          <div class="card-c">
+            <p class="muted" style="font-size:14px;margin-bottom:12px">Your emergency contact will be notified only if the in-app SOS feature is activated during a ride.</p>
+            <div style="margin-bottom:12px">
+              <div class="label">Name</div>
+              <input class="input" id="ecName" placeholder="e.g., Mom" value="Sarah Doe" />
+            </div>
+            <div style="margin-bottom:12px">
+              <div class="label">Phone Number</div>
+              <input type="tel" class="input" id="ecPhone" placeholder="e.g., 555-123-4567" value="555-123-4567" />
+            </div>
+            <div style="display:flex;justify-content:space-between">
+                <button class="btn brand" onclick="alert('Mock Accident Report: Details collected and emergency contact notified.')">⚠️ Emergency Accident Report</button>
+                <button class="btn primary" onclick="updateEmergencyContact()">Save Contact</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="settings" class="screen">
+      <div class="container section">
+        <div style="display:flex;align-items:center;gap:8px" class="title">← <button class="btn ghost" data-goto="home">Back</button> Settings</div>
+        <div class="row" style="margin-top:12px">
+          <div class="card">
+            <div class="card-h"><strong>Privacy</strong></div>
+            <div class="card-c muted">RideWise is SFU-only with email verification. We never sell personal data. Aggregate, anonymized commute stats may be shared with SFU for sustainability reporting.</div>
+          </div>
+          <div class="card">
+            <div class="card-h"><strong>Notifications</strong></div>
+            <div class="card-c">
+              <label class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Ride requests</span><input type="checkbox" class="switch" checked></label>
+              <label class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px"><span>Messages</span><input type="checkbox" class="switch"></label>
+              <label class="pill" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px"><span>Rewards & challenges</span><input type="checkbox" class="switch"></label>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row" style="margin-top:12px">
+            <div class="card">
+                <div class="card-h"><strong>Support</strong></div>
+                <div class="card-c">
+                    <p class="muted" style="margin-bottom:12px">Need help with a ride, a payment, or a general question? Our support team is here for you.</p>
+                    <div class="grid-actions">
+                        <button class="btn primary block" onclick="alert('Mock: Initiating live chat with a support agent.')">Contact Live Support</button>
+                        <button class="btn block" onclick="alert('Mock: Opening help documentation.')">Help & FAQs</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </section>
+  </main>
+
+  <script>
+    // -------- State --------
+    const state = {
+      screen: 'welcome',
+      userName: 'Guest Rider',
+      isVerified: false,
+      asDriver: false,
+      asRider: true,
+      carpoolMode: false, // MODIFIED: Default carpoolMode to false since the switch was removed from onboarding
+      friendsOnly: false,
+      genderPref: 'any',
+      query: '',
+      timeFilter: '',
+      courseFilter: 'none', 
+      selectedRideId: null,
+      selectedChatId: null, 
+      points: 250, // Increased mock points
+      co2SavedKg: 55.8, // Increased mock CO2 saved
+      ridesCompleted: 8, // New mission stat
+      newFriendsRiddenWith: 1, // New mission stat
+      carMake: '',
+      carModel: '',
+      rideEtiquette: ['Quiet', 'Mask friendly'], 
+      emergencyContact: { name: 'Sarah Doe', phone: '555-123-4567' }, 
+      balance: 55.00, // NEW: User's wallet balance
+      
+      // MOCK DATA
+      contacts: [
+        {name: 'Kaidin SD', initials: 'KS', isFriend: true, rating: 4.8},
+        {name: 'Annika Tan', initials: 'AT', isFriend: true, rating: 5.0},
+        {name: 'Rex F', initials: 'RF', isFriend: false, rating: 4.6},
+        {name: 'Lucas Li', initials: 'LL', isFriend: false, rating: 4.7}
+      ],
+      userCourses: ['cmpt300', 'bus343'],
+      // NEW: Mock transaction data
+      transactions: [
+          { date: '2025-11-20', description: 'Payment to Kaidin SD (SFU Burnaby)', amount: -3.50 },
+          { date: '2025-11-18', description: 'Deposit from Bank Account', amount: 30.00 },
+          { date: '2025-11-15', description: 'Received from Annika Tan (Metrotown)', amount: 4.00 },
+      ]
+    };
+
+    /** Mock rides seeded along the Production Way ➜ SFU Burnaby corridor */
+    const RIDES = [
+      {id:'r1', driver:'Kaidin SD', driverInitials:'KS', rating:4.8, seats:2, departTime:'08:40', from:'Production Way–University Station', to:'SFU Burnaby', costShare:2, notes:'Quiet ride, no food please', gender:'any', car:'Honda Civic', etiquette:['Quiet', 'No food'], courses: ['cmpt300']}, 
+      {id:'r2', driver:'Annika Tan', driverInitials:'AT', rating:5.0, seats:1, departTime:'09:10', from:'Lougheed Town Centre', to:'SFU Burnaby', costShare:3, notes:'Music okay, can chat', gender:'female', car:'Toyota Corolla', etiquette:['Music OK', 'Women-only'], courses: ['bus343']}, 
+      {id:'r3', driver:'Lucas Li', driverInitials:'LL', rating:4.6, seats:3, departTime:'10:05', from:'Metrotown Station', to:'SFU Burnaby', costShare:2, notes:'Friends-only mode OFF', gender:'any', car:'Ford Escape', etiquette:['Mask friendly', 'Trunk space limited'], courses: []}
+    ];
+
+    /** Mock chats */
+    const CHATS = { 
+        'chat-maya': {
+            partner: 'Annika Tan',
+            initials: 'AT',
+            color: '#fef3c7',
+            messages: [
+                {type: 'in', text: 'Hey, I just joined your ride to SFU Burnaby!'},
+                {type: 'out', text: 'Awesome! Glad to have you. Just confirming pickup is at Lougheed Town Centre at 9:10.'},
+                {type: 'in', text: 'Yep, sounds good! Just checking on the pickup spot...'}
+            ]
+        },
+        'chat-alex': {
+            partner: 'Kaidin SD',
+            initials: 'KS',
+            color: '#ffe4e6',
+            messages: [
+                {type: 'in', text: 'See you at 8:40!'},
+                {type: 'out', text: 'Perfect timing, traffic should be light then. See you!'}
+            ]
+        },
+        'chat-group': {
+            partner: 'SFU Bus Loop Group Chat',
+            initials: 'GS',
+            color: '#f1f5f9',
+            messages: [
+                {type: 'in', sender: 'Rex', text: 'Running 2 mins late, guys.'},
+                {type: 'in', sender: 'Kaidin', text: 'No worries!'}
+            ]
+        }
+    };
+
+    /** Environmental Trophies */
+    const TROPHIES = [
+        { id: 1, icon: '🌱', title: 'Seedling', caption: '10 kg CO₂ saved', threshold: 10 },
+        { id: 2, icon: '🌳', title: 'Sapling', caption: '50 kg CO₂ saved', threshold: 50 },
+        { id: 3, icon: '🌲', title: 'Forest Starter', caption: '100 kg CO₂ saved', threshold: 100 },
+        { id: 4, icon: '🌎', title: 'Eco Champion', caption: '500 kg CO₂ saved', threshold: 500 }
+    ];
+    
+    /** Daily Missions */
+    const MISSIONS = [ // New Mission Data
+        { id: 1, icon: '🤝', text: 'Share a ride (complete 1 carpool)', reward: 20, completed: state.ridesCompleted > 0, buttonText: 'Find Ride' },
+        { id: 2, icon: '🌿', text: 'Save 1 kg of CO₂ (daily bonus)', reward: 5, completed: state.co2SavedKg > 55, buttonText: 'View Impact' },
+        { id: 3, icon: '🥳', text: 'Make a new friend (ride with a new contact)', reward: 30, completed: state.newFriendsRiddenWith > 0, buttonText: 'Invite Friend' }
+    ];
+
+
+    // -------- Emergency Contact Logic --------
+    function updateEmergencyContact() {
+        const name = document.getElementById('ecName').value.trim();
+        const phone = document.getElementById('ecPhone').value.trim();
+        
+        if (!name || !phone) {
+            alert('Please enter both a name and a phone number for your emergency contact.');
+            return;
+        }
+        
+        state.emergencyContact = { name, phone };
+        alert(`Emergency contact (${name}) updated.`);
+    }
+
+    // -------- Chat Initiation Logic --------
+    function initiateNewChat() {
+        const query = document.getElementById('newChatInput').value.trim();
+        if (!query) {
+            alert('Please enter a contact name to start a new chat.');
+            return;
+        }
+
+        // Mock Search: Find a contact or mock a new one
+        const contact = state.contacts.find(c => c.name.toLowerCase().includes(query.toLowerCase()));
+
+        if (contact) {
+            // Found existing contact, use a dynamic chat ID
+            const newChatId = `chat-${contact.initials.toLowerCase()}-${Date.now()}`;
+            
+            // Add a mock new chat to CHATS object (assuming a simple initial message)
+            CHATS[newChatId] = {
+                partner: contact.name,
+                initials: contact.initials,
+                color: contact.initials === 'AT' ? '#fef3c7' : (contact.initials === 'KS' ? '#ffe4e6' : '#f1f5f9'),
+                messages: [
+                    {type: 'out', text: `Hello ${contact.name.split(' ')[0]}, let's connect for the carpool!`}
+                ]
+            };
+            
+            showChat(newChatId);
+
+        } else if (query.toLowerCase().includes('rex')) {
+             // Mock starting a chat with Rex F, who isn't a "Friend" but is a contact
+            const newChatId = `chat-rf-${Date.now()}`;
+            
+            CHATS[newChatId] = {
+                partner: 'Rex F',
+                initials: 'RF',
+                color: '#f1f5f9',
+                messages: [
+                    {type: 'out', text: 'Hey Rex, I saw your post. Can I join your ride to campus?'}
+                ]
+            };
+            
+            showChat(newChatId);
+        } else {
+             alert(`Could not find a match for "${query}". Please try "Rex", "Kaidin", or "Annika" to start a new chat. (This is a demo search.)`);
+        }
+        document.getElementById('newChatInput').value = ''; // Clear input
+    }
+    
+    // -------- Custom Location Toggle Logic --------
+    function setupOfferScreenListeners() {
+        const fromSelect = document.getElementById('offerFrom');
+        const toSelect = document.getElementById('offerTo');
+        const customContainer = document.getElementById('customLocations');
+        
+        function toggleCustomFields() {
+            const isCustomSelected = fromSelect.value === 'Custom' || toSelect.value === 'Custom';
+            customContainer.classList.toggle('hidden', !isCustomSelected);
+        }
+
+        fromSelect.addEventListener('change', toggleCustomFields);
+        toSelect.addEventListener('change', toggleCustomFields);
+        
+        // Initial check on load
+        toggleCustomFields();
+    }
+    
+    // -------- Onboarding/Verification Logic --------
+    function completeOnboarding(){
+      const name = document.getElementById('onboardName').value.trim();
+      const studentId = document.getElementById('onboardStudentId').value.trim();
+      const email = document.getElementById('onboardEmail').value.trim(); // NEW: Get email
+      const driverMode = document.getElementById('asDriver').checked;
+      const riderMode = document.getElementById('asRider').checked;
+
+      if(!name || !studentId || !email){ // UPDATED: Check for email
+        alert('Please enter your full name, SFU Student ID, and SFU Email to verify.');
+        return;
+      }
+      if(!driverMode && !riderMode){
+        alert('Please select at least one mode (Driver or Rider).');
+        return;
+      }
+
+      // MOCK VERIFICATION SUCCESS
+      state.userName = name;
+      state.isVerified = true;
+      state.asDriver = driverMode;
+      state.asRider = riderMode;
+      
+      // Update gender preference if needed
+      document.querySelectorAll('#onboard [data-gender]').forEach(btn=>{
+          if(btn.classList.contains('primary')){
+              state.genderPref = btn.getAttribute('data-gender');
+          }
+      });
+
+      alert(`Verification successful! Welcome back, ${state.userName.split(' ')[0]}!`);
+      
+      // REDIRECT LOGIC: If driver mode is ON, go to car registration, otherwise go home.
+      if(state.asDriver){
+        show('registerCar');
+      } else {
+        show('home');
+      }
+    }
+    
+    // -------- Car Registration Logic --------
+    function completeCarRegistration(){
+      const make = document.getElementById('carMake').value.trim();
+      const model = document.getElementById('carModel').value.trim();
+      const plate = document.getElementById('carPlate').value.trim();
+
+      if(!make || !model || !plate){
+        alert('Please enter your car make, model, and license plate.');
+        return;
+      }
+      
+      state.carMake = make;
+      state.carModel = model;
+      
+      alert(`Car registered: ${make} ${model}. You are now ready to offer rides!`);
+      show('home');
+    }
+
+    // -------- Etiquette Listener Logic --------
+    function setupEtiquetteListeners() {
+        document.querySelectorAll('#etiquetteOptions [data-etiquette]').forEach(btn => {
+            const etiquette = btn.getAttribute('data-etiquette');
+
+            // 1. Set initial state (primary class)
+            if (state.rideEtiquette.includes(etiquette)) {
+                btn.classList.add('primary');
+            } else {
+                btn.classList.remove('primary');
+            }
+            
+            // 2. Clear previous listeners before adding a new one (important for re-renders)
+            btn.onclick = null;
+
+            // 3. Attach toggle listener
+            btn.onclick = () => {
+                if (state.rideEtiquette.includes(etiquette)) {
+                    // Remove if already present
+                    state.rideEtiquette = state.rideEtiquette.filter(e => e !== etiquette);
+                    btn.classList.remove('primary');
+                } else {
+                    // Add if not present
+                    state.rideEtiquette.push(etiquette);
+                    btn.classList.add('primary');
+                }
+            };
+        });
+    }
+
+
+    // -------- Routing --------
+    function show(screen){
+      if(screen==='messages'){
+          state.selectedChatId = null; // Clear selected chat when going to message list
+      }
+      state.screen = screen;
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById(screen).classList.add('active');
+      
+      // Call render functions for screens that need dynamic updates
+      if(screen==='home'){ renderHome(); } 
+      if(screen==='find'){ renderFind(); }
+      if(screen==='rewards'){ renderRewards(); }
+      if(screen==='details'){ 
+          if(state.selectedChatId){
+              renderChatDetails(); // NEW: Render chat if selected
+          } else {
+              renderDetails(); // Existing ride details
+          }
+      }
+      if(screen==='profile'){ renderProfile(); } 
+      if(screen==='offer'){ setupOfferScreenListeners(); } 
+    }
+
+    // nav buttons
+    document.querySelectorAll('[data-goto]').forEach(btn=>btn.addEventListener('click', e=>{
+      const to = e.currentTarget.getAttribute('data-goto');
+      show(to);
+    }));
+    document.querySelectorAll('[data-nav]').forEach(btn=>btn.addEventListener('click', e=>{
+      const to = e.currentTarget.getAttribute('data-nav');
+      show(to);
+    }));
+    
+    // NEW: Chat initiation function
+    function showChat(chatId) {
+        state.selectedRideId = null; // Clear selected ride
+        state.selectedChatId = chatId;
+        show('details');
+    }
+
+    // gender pref buttons (onboard and profile)
+    document.querySelectorAll('[data-gender]').forEach(btn=>btn.addEventListener('click', e=>{
+      // Reset button styles in the same group
+      const group = e.currentTarget.parentElement;
+      group.querySelectorAll('.btn').forEach(b=>b.classList.remove('primary'));
+      
+      // Set the clicked button's style
+      e.currentTarget.classList.add('primary');
+      
+      // Update state in case it's on a non-onboarding screen
+      if(state.screen !== 'onboard'){
+        state.genderPref = e.currentTarget.getAttribute('data-gender');
+      }
+    }));
+
+    // renderProfile function
+    function renderProfile(){
+        const nameEl = document.getElementById('profileName');
+        const avatarEl = document.getElementById('profileAvatar');
+        const contactsListEl = document.getElementById('contactsList');
+        const walletBalanceEl = document.getElementById('walletBalance'); // NEW: Wallet element
+        const transactionsListEl = document.getElementById('transactionsList'); // NEW: Transactions element
+        
+        if(state.isVerified){
+            const initials = state.userName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2);
+            if(nameEl) nameEl.textContent = state.userName;
+            if(avatarEl) avatarEl.textContent = initials;
+            
+            // Sync preferences
+            document.getElementById('pfCarpool').checked = state.carpoolMode;
+            document.getElementById('pfFriends').checked = state.friendsOnly;
+        } else {
+             if(nameEl) nameEl.textContent = 'Guest Rider';
+             if(avatarEl) avatarEl.textContent = 'GR';
+        }
+        
+        // Setup etiquette buttons on profile load
+        setupEtiquetteListeners();
+        
+        // Render Contacts
+        contactsListEl.innerHTML = ''; // Clear previous content
+        contactsListEl.innerHTML = `<p class="muted" style="font-size:14px;margin-bottom:8px">Friends are automatically trusted and exempt from "Friends-only mode" rides.</p>`;
+
+        state.contacts.forEach(c => {
+            const row = document.createElement('div');
+            row.className = 'row-item';
+            const friendStatus = c.isFriend ? 'Friend' : 'Contact';
+            const friendBadge = c.isFriend ? '<span class="badge" style="background:#d1fae5">★ Friend</span>' : '';
+            row.innerHTML = `<div class="avatar">${c.initials}</div>
+              <div style="flex:1">
+                <div class="title" style="display:flex;align-items:center;gap:8px">${c.name} ${friendBadge}</div>
+                <div class="muted" style="font-size:14px">Rating: ${c.rating.toFixed(1)}</div>
+              </div>
+              <button class="btn ghost">${c.isFriend ? 'Unfriend' : 'Add Friend'}</button>`;
+            contactsListEl.appendChild(row);
+        });
+        
+        // Sync Emergency Contact Fields
+        if(state.emergencyContact){
+            document.getElementById('ecName').value = state.emergencyContact.name;
+            document.getElementById('ecPhone').value = state.emergencyContact.phone;
+        }
+
+        // NEW: Render Wallet & Transactions
+        if(walletBalanceEl) walletBalanceEl.textContent = `$${state.balance.toFixed(2)}`;
+        
+        if (transactionsListEl) {
+            transactionsListEl.innerHTML = '';
+            state.transactions.forEach(t => {
+                const amountClass = t.amount > 0 ? 'color:#22c55e' : 'color:var(--brand)';
+                const sign = t.amount > 0 ? '+' : '-';
+                
+                const row = document.createElement('div');
+                row.className = 'row-item';
+                row.style.marginBottom = '8px';
+                row.innerHTML = `
+                    <div style="flex:1">
+                        <div class="title">${t.description}</div>
+                        <div class="muted" style="font-size:12px">${t.date}</div>
+                    </div>
+                    <strong style="${amountClass}">${sign}$${Math.abs(t.amount).toFixed(2)}</strong>
+                `;
+                transactionsListEl.appendChild(row);
+            });
+        }
+    }
+
+    // -------- Filtering logic --------
+    function getFilteredRides(){
+      return RIDES.filter(r=>{
+        // Filter by location *or* driver name in search bar (used on home screen)
+        const matchesQuery = state.query ? (r.driver + ' ' + r.from + ' ' + r.to).toLowerCase().includes(state.query.toLowerCase()) : true;
+        const matchesTime = state.timeFilter ? r.departTime >= state.timeFilter : true;
+        const matchesGender = state.genderPref==='any' ? true : r.gender===state.genderPref;
+        
+        // NEW: Filter by Course Match (used on find screen)
+        const matchesCourse = state.courseFilter === 'none' ? true : r.courses.some(c => state.userCourses.includes(c));
+
+        return matchesQuery && matchesTime && matchesGender && matchesCourse;
+      });
+    }
+
+    // -------- Home rendering --------
+    function renderHome(){
+      // Greeting logic
+      const greetingEl = document.getElementById('home-greeting');
+      if(greetingEl){
+        if(state.isVerified){
+          greetingEl.innerHTML = `<h2 class="h1" style="font-size:32px;">Welcome back, ${state.userName.split(' ')[0]}!</h2><div class="muted">Find your commute or post a ride.</div>`;
+        } else {
+          greetingEl.innerHTML = `<h2 class="h1" style="font-size:32px;">Welcome to RideWise!</h2><div class="muted">Please <button class="btn ghost" style="padding:0" data-goto="onboard">verify your profile</button> to post or join rides.</div>`;
+        }
+      }
+
+      // bind search (only applies query filter for now, time/gender handled on find screen)
+      const search = document.getElementById('search');
+      search.value = state.query;
+      search.oninput = (e)=>{ state.query = e.target.value; renderHome(); };
+
+      const list = document.getElementById('rideList');
+      const count = document.getElementById('count');
+
+      // clear
+      list.innerHTML='';
+
+      const filtered = getFilteredRides();
+      count.textContent = filtered.length + ' ride(s)';
+
+      filtered.forEach(r=>{
+        // list row
+        const row = document.createElement('button');
+        row.className = 'row-item';
+        // Add course badges if applicable
+        const courseBadges = r.courses.length > 0 ? r.courses.map(c => `<span class="badge" style="background:#e0f2f1; color: var(--bg)">${c.toUpperCase()}</span>`).join(' ') : '';
+        
+        row.innerHTML = `<div class="avatar">${r.driverInitials}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px"><strong>${r.driver}</strong> <span class="badge">⭐ ${r.rating.toFixed(1)}</span> ${courseBadges}</div>
+            <div class="muted" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.from} → ${r.to}</div>
+            <div class="muted" style="display:flex;gap:12px;font-size:14px;margin-top:4px">
+              <span>⏰ ${r.departTime}</span>
+              <span>👥 ${r.seats} seats</span>
+              <span>💲 ~$${r.costShare}</span>
+            </div>
+          </div>
+          <span>›</span>`;
+        row.onclick = ()=>{ state.selectedRideId = r.id; state.selectedChatId = null; show('details'); };
+        list.appendChild(row);
+      });
+
+      // impact numbers
+      document.getElementById('co2').textContent = state.co2SavedKg.toFixed(1);
+    }
+    
+    // -------- postRide function --------
+    document.getElementById('postRide').addEventListener('click', ()=>{
+      const fromSelect = document.getElementById('offerFrom').value;
+      const toSelect = document.getElementById('offerTo').value;
+      
+      // Check if driver is verified and has a car registered
+      if(state.asDriver && (!state.carMake || !state.carModel)){
+          alert('Please complete your car registration details first. Go to Profile > Register Car.');
+          show('registerCar');
+          return;
+      }
+      if(!state.isVerified){
+          alert('Please verify your profile first to post a ride.');
+          show('onboard');
+          return;
+      }
+      
+      // Determine final "From" location
+      const finalFrom = fromSelect === 'Custom' 
+          ? document.getElementById('offerFromCustom').value || 'Custom Pickup'
+          : fromSelect;
+
+      // Determine final "To" location
+      const finalTo = toSelect === 'Custom'
+          ? document.getElementById('offerToCustom').value || 'Custom Dropoff'
+          : toSelect;
+          
+      if (!finalFrom || !finalTo) {
+          alert('Please select or enter both a valid From and To location.');
+          return;
+      }
+
+      // Read other fields
+      const departTime = document.getElementById('offerTime').value || '09:00';
+      const seats = Math.max(1, parseInt(document.getElementById('offerSeats').value||'2',10));
+      const costShare = parseFloat(document.getElementById('offerCost').value||'2');
+      const notes = document.getElementById('offerNotes').value;
+      
+      // MOCK: If the user selected Recurring Ride, assume it's for their main courses
+      const isRecurring = document.getElementById('offerRecurring') ? document.getElementById('offerRecurring').checked : false; // FIX: offerRecurring isn't in the HTML, added null check
+      const rideCourses = isRecurring ? [...state.userCourses] : [];
+
+
+      const newRide = {
+        id:'r'+(RIDES.length+1),driver:state.userName.split(' ')[0]||'You',driverInitials:state.userName.split(' ').map(n=>n[0]).join('').toUpperCase().substring(0,2),
+        rating:5.0,seats,departTime,from:finalFrom,to:finalTo,costShare,notes,gender:state.genderPref,
+        car: state.carMake + ' ' + state.carModel,
+        etiquette: [...state.rideEtiquette], // Use a copy of the current etiquette
+        courses: rideCourses // Added course data
+      };
+      RIDES.unshift(newRide);
+      state.points += 5;
+      state.co2SavedKg = +(state.co2SavedKg + 1.2).toFixed(1);
+      state.ridesCompleted += 1; // Increment ride count
+      alert('Ride posted! (demo)');
+      show('home');
+    });
+
+    function renderFind(){
+      // Sync Filters with State
+      document.getElementById('filterTime').value = state.timeFilter;
+      
+      // Highlight filter buttons
+      document.querySelectorAll('[data-course-filter]').forEach(btn => {
+          if (btn.getAttribute('data-course-filter') === state.courseFilter) {
+              btn.classList.add('primary');
+          } else {
+              btn.classList.remove('primary');
+          }
+      });
+      document.querySelectorAll('[data-gender-filter]').forEach(btn => {
+          if (btn.getAttribute('data-gender-filter') === state.genderPref) {
+              btn.classList.add('primary');
+          } else {
+              btn.classList.remove('primary');
+          }
+      });
+
+
+      const res = document.getElementById('results');
+      const resultsCount = document.getElementById('resultsCount');
+      res.innerHTML='';
+
+      const filtered = getFilteredRides();
+      resultsCount.textContent = filtered.length + ' match(es)';
+
+      filtered.forEach(r=>{
+        const row = document.createElement('button');
+        row.className = 'row-item';
+        const courseBadges = r.courses.length > 0 ? r.courses.map(c => `<span class="badge" style="background:#e0f2f1; color: var(--bg)">${c.toUpperCase()}</span>`).join(' ') : '';
+        
+        row.innerHTML = `<div class="avatar">${r.driverInitials}</div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px"><strong>${r.driver}</strong> <span class="badge">⭐ ${r.rating.toFixed(1)}</span> ${courseBadges}</div>
+            <div class="muted" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.from} → ${r.to}</div>
+            <div class="muted" style="display:flex;gap:12px;font-size:14px;margin-top:4px">
+              <span>⏰ ${r.departTime}</span>
+              <span>👥 ${r.seats} seats</span>
+              <span>💲 ~$${r.costShare}</span>
+            </div>
+          </div>
+          <span>›</span>`;
+        row.onclick = ()=>{ state.selectedRideId = r.id; state.selectedChatId = null; show('details'); };
+        res.appendChild(row);
+      });
+    }
+
+    document.querySelector('[data-apply-filters]').addEventListener('click', ()=>{
+      state.timeFilter = document.getElementById('filterTime').value;
+      show('home');
+    });
+
+    document.querySelectorAll('[data-gender-filter]').forEach(btn=>btn.addEventListener('click', e=>{
+      const group = e.currentTarget.parentElement;
+      group.querySelectorAll('.btn').forEach(b=>b.classList.remove('primary'));
+      e.currentTarget.classList.add('primary');
+      
+      state.genderPref = e.currentTarget.getAttribute('data-gender-filter');
+      renderFind();
+    }));
+
+    document.querySelectorAll('[data-course-filter]').forEach(btn=>btn.addEventListener('click', e=>{
+      const group = e.currentTarget.parentElement;
+      group.querySelectorAll('.btn').forEach(b=>b.classList.remove('primary'));
+      e.currentTarget.classList.add('primary');
+      
+      state.courseFilter = e.currentTarget.getAttribute('data-course-filter');
+      renderFind();
+    }));
+    
+    // -------- NEW: Send Message Logic --------
+    function sendMessage(chatId) {
+        const inputElement = document.getElementById('chatInput');
+        const messageText = inputElement.value.trim();
+        
+        if (!messageText) {
+            return; // Don't send empty messages
+        }
+        
+        const chat = CHATS[chatId];
+        if (chat) {
+            // Append the new message to the chat history
+            chat.messages.push({
+                type: 'out', // Messages sent by the user are 'out'
+                text: messageText
+            });
+            
+            // Clear the input field
+            inputElement.value = '';
+            
+            // Re-render the chat screen to display the new message
+            renderChatDetails();
+            
+            // Auto-scroll the chat box to the bottom (since it was just re-rendered)
+            const chatBox = document.getElementById('activeChatBox');
+            if (chatBox) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    }
+
+    // NEW: renderChatDetails - Renders the mock chat screen
+    function renderChatDetails() {
+        const card = document.getElementById('detailsCard');
+        const header = document.getElementById('detailsHeader');
+        const chat = CHATS[state.selectedChatId];
+        
+        if (!chat) { card.innerHTML = '<div class="card-c">No chat selected.</div>'; return; }
+        
+        // 1. Render Header
+        header.innerHTML = `← <button class="btn ghost" onclick="show('messages')">Back</button> ${chat.partner}`;
+
+        // 2. Render Chat Messages
+        const messageHistory = chat.messages.map(m => {
+            // Determine the sender name for group chats (type 'in'), but not for 1-on-1 or 'out' messages
+            const senderName = m.sender && m.type === 'in' ? m.sender + ': ' : '';
+            return `<div class="message ${m.type}">${senderName}${m.text}</div>`;
+        }).join('');
+
+        card.innerHTML = `
+            <div class="card-h" style="justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:10px">
+                    <div class="avatar">${chat.initials}</div>
+                    <strong>${chat.partner}</strong>
+                </div>
+                <button class="btn ghost">📞 Call (Mock)</button>
+            </div>
+            <div class="card-c">
+                <div class="chat-box" id="activeChatBox">${messageHistory}</div>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                    <input class="input" id="chatInput" placeholder="Type your message..." onkeyup="if(event.key === 'Enter') sendMessage('${state.selectedChatId}')"/>
+                    <button class="btn primary" onclick="sendMessage('${state.selectedChatId}')">Send</button>
+                </div>
+            </div>`;
+            
+        // 3. Auto-scroll chat box to the bottom on first render
+        const chatBox = document.getElementById('activeChatBox');
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    // renderDetails (Existing ride details)
+    function renderDetails(){
+      const card = document.getElementById('detailsCard');
+      const header = document.getElementById('detailsHeader');
+      const ride = RIDES.find(r=>r.id===state.selectedRideId);
+      
+      if(!ride){ card.innerHTML = '<div class="card-c">No ride selected.</div>'; return; }
+      
+      // 1. Render Header (FIXED: Using onclick="show('home')" for back button)
+      header.innerHTML = `← <button class="btn ghost" onclick="show('home')">Back</button> Ride details`;
+
+      // Use car info if available on the ride object
+      const carDetail = ride.car ? `<div class="pill" style="display:flex;align-items:center;justify-content:space-between"><span>🚗 Vehicle</span><strong>${ride.car}</strong></div>` : '';
+      
+      // Etiquette display
+      const etiquetteHtml = ride.etiquette && ride.etiquette.length > 0
+          ? ride.etiquette.map(e => `<span class="k">${e}</span>`).join('')
+          : '<span class="muted">No specific etiquette requested.</span>';
+          
+      // Course display
+      const courseHtml = ride.courses && ride.courses.length > 0
+          ? ride.courses.map(c => `<span class="badge" style="background:#e0f2f1; color: var(--bg)">📚 ${c.toUpperCase()} Match</span>`).join('')
+          : '<span class="muted">Not associated with a specific course.</span>';
+
+
+      card.innerHTML = `
+        <div class="card-h">
+          <div class="avatar">${ride.driverInitials}</div>
+          <div style="flex:1">
+            <div class="title" style="display:flex;align-items:center;gap:8px">${ride.driver} <span class="badge">⭐ ${ride.rating.toFixed(1)}</span></div>
+            <div class="muted" style="font-size:14px">Verified SFU Student</div>
+          </div>
+        </div>
+        <div class="card-c">
+          <div class="grid-2">
+            <div class="pill">
+              <div class="label">Route</div>
+              <div class="title" style="font-weight:600">${ride.from} → ${ride.to}</div>
+            </div>
+            <div class="pill" style="display:flex;align-items:center;justify-content:space-between"><span>⏰ Departure</span><strong>${ride.departTime}</strong></div>
+            <div class="pill" style="display:flex;align-items:center;justify-content:space-between"><span>👥 Seats</span><strong>${ride.seats}</strong></div>
+            <div class="pill" style="display:flex;align-items:center;justify-content:space-between"><span>💲 Cost share</span><strong>~$${ride.costShare}</strong></div>
+          </div>
+          <div class="grid-2" style="margin-top:8px">
+            ${carDetail}
+          </div>
+          
+          <div class="pill" style="margin-top:8px">
+              <div class="label">Linked Courses</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">${courseHtml}</div>
+          </div>
+          
+          <div class="pill" style="margin-top:8px">
+              <div class="label">Ride Etiquette</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">${etiquetteHtml}</div>
+          </div>
+
+          ${ride.notes?`<div class="pill" style="margin-top:8px"><strong>Notes:</strong> <span class="muted">${ride.notes}</span></div>`:''}
+          
+          <div class="grid-actions" style="margin-top:12px">
+            <button class="btn brand" id="reqJoin" ${state.isVerified ? '' : 'disabled'}>Request to join</button>
+            <button class="btn" onclick="showChat('chat-alex')">💬 Message</button>
+          </div>
+          <div class="grid-3" style="margin-top:12px">
+            <div class="k">🔐 Safety: live-share ETA, SOS, check-ins (demo)</div>
+            <div class="k">🆘 Emergency Contact: ${state.emergencyContact ? state.emergencyContact.name : 'Not set'}</div>
+            <div class="k">🌍 Impact: ~0.8 kg CO₂ saved vs solo</div>
+          </div>
+        </div>`;
+      if(document.getElementById('reqJoin')) document.getElementById('reqJoin').onclick = ()=>{
+        state.points += 10;
+        state.co2SavedKg = +(state.co2SavedKg + 2.4).toFixed(1);
+        alert('Request sent! (demo)');
+        show('home');
+      };
+    }
+
+    function renderRewards(){
+      document.getElementById('points').textContent = state.points;
+      document.getElementById('co2Big').textContent = state.co2SavedKg.toFixed(1);
+      const lb = document.getElementById('leaderboard');
+      lb.innerHTML = '';
+      
+      // Render Leaderboard
+      // 1. Annika Tan (was Maya P)
+      // 2. Kaidin SD (was Alex C)
+      // 3. Rex F (was Fatima Z)
+      // 4. You
+      ['Annika Tan','Kaidin SD','Rex F','You'].forEach((n,i)=>{
+        const row = document.createElement('div');
+        row.className='row-item';
+        // Leaderboard now shows CO₂ saved instead of points
+        // UPDATED: Removed '#', bolded rank, and applied green styling to CO2 value
+        row.innerHTML = `<div style="display:flex;align-items:center;gap:8px"><strong>${i+1}</strong>. ${n}</div><div style="margin-left:auto"><strong style="color:#22c55e">${50 - i*10} kg CO₂</strong></div>`;
+        lb.appendChild(row);
+      });
+      
+      // --- Referral Code Logic (NEW) ---
+      let referralName = state.userName.split(' ')[0];
+      // Check if the user is using the default "Guest Rider" name
+      if (referralName === 'Guest') {
+          referralName = 'JANE'; 
+      }
+      const referralCode = `SFU-RIDE-${referralName.toUpperCase()}`;
+      
+      const codeElement = document.getElementById('referralCodeDisplay');
+      if (codeElement) {
+          codeElement.textContent = referralCode;
+      }
+      // --- End Referral Code Logic ---
+
+      
+      // Render Trophies
+      const trophyGrid = document.getElementById('trophyGrid');
+      trophyGrid.innerHTML = '';
+      
+      TROPHIES.forEach(trophy => {
+          const unlocked = state.co2SavedKg >= trophy.threshold;
+          const trophyItem = document.createElement('div');
+          trophyItem.className = `trophy-item ${unlocked ? 'unlocked' : ''}`;
+          trophyItem.innerHTML = `
+            <span class="trophy-icon">${unlocked ? trophy.icon : '🔒'}</span>
+            <div class="trophy-title">${trophy.title}</div>
+            <div class="trophy-caption">${trophy.caption}</div>
+          `;
+          trophyGrid.appendChild(trophyItem);
+      });
+      
+      // Render Missions (NEW)
+      const missionsBar = document.getElementById('missionsBar');
+      missionsBar.innerHTML = '';
+      
+      MISSIONS.forEach(mission => {
+          const missionDiv = document.createElement('div');
+          missionDiv.className = `mission-item ${mission.completed ? 'complete' : ''}`;
+          missionDiv.innerHTML = `
+            <span class="mission-icon">${mission.completed ? '✅' : mission.icon}</span>
+            <div class="mission-text">${mission.text}</div>
+            <div class="mission-reward">
+                +${mission.reward} Pts
+                <button class="btn primary small" style="margin-left: 8px;" ${mission.completed ? 'disabled' : ''}>${mission.completed ? 'Completed' : mission.buttonText}</button>
+            </div>
+          `;
+          missionsBar.appendChild(missionDiv);
+      });
+    }
+
+    // initial mount
+    renderHome();
+  </script>
+</body>
+</html>
